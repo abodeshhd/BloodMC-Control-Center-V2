@@ -1,143 +1,33 @@
-const $ = (id) => document.getElementById(id);
-let apiKey = "";
-let refreshTimer = null;
-const PANEL_BASE = "https://panel.primehost.cc/api/client/servers/cb21b17b";
-
-function parseBody(text) {
-  if (!text) return null;
-  try { return JSON.parse(text); } catch { return { message: text.slice(0, 500) }; }
-}
-
-function explainApiError(status, data) {
-  const detail = data?.errors?.[0]?.detail || data?.message || data?.error;
-  if (status === 401) return "رفض PrimeHost المفتاح (401). أنشئ Client API Key جديداً وتأكد أنه غير ملغى.";
-  if (status === 403) return "المفتاح صحيح لكن لا يملك صلاحية الوصول لهذا السيرفر (403).";
-  if (status === 404) return "لم يتم العثور على السيرفر أو مسار API (404). تحقق من Server Identifier في PrimeHost.";
-  if (status === 409) return "PrimeHost رفض العملية بسبب حالة السيرفر الحالية (409).";
-  if (status === 422) return `بيانات الطلب غير مقبولة (422).${detail ? " " + detail : ""}`;
-  if (status === 429) return "طلبات كثيرة. انتظر قليلاً ثم حاول مجدداً (429).";
-  if (status >= 500) return `خلل مؤقت من خادم PrimeHost (HTTP ${status}).`;
-  return `فشل طلب PrimeHost (HTTP ${status}).${detail ? " " + detail : ""}`;
-}
-
-async function api(path, options = {}) {
-  if (!apiKey) throw new Error("أدخل مفتاح Client API أولاً.");
-  const url = `${PANEL_BASE}${path}`;
-  const headers = {
-    Accept: "Application/vnd.pterodactyl.v1+json",
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${apiKey}`,
-    ...(options.headers || {})
-  };
-  let status, data;
-  try {
-    if (window.bloodmcDesktop?.request) {
-      const result = await window.bloodmcDesktop.request({
-        url, method: options.method || "GET", headers, body: options.body || null
-      });
-      status = result.status;
-      data = result.data;
-    } else {
-      // CapacitorHttp is enabled in capacitor.config.js and transparently
-      // routes fetch through native HTTPS on Android (avoids browser CORS).
-      const response = await fetch(url, { ...options, headers });
-      status = response.status;
-      data = parseBody(response.status === 204 ? "" : await response.text());
-    }
-  } catch (error) {
-    const message = String(error?.message || error);
-    if (/timeout|timed out|aborted/i.test(message)) throw new Error("انتهت مهلة الاتصال بـ PrimeHost. تحقق من الإنترنت وحاول مجدداً.");
-    if (/failed to fetch|network|internet|connection|ssl|certificate/i.test(message)) {
-      throw new Error("تعذر الوصول إلى PrimeHost عبر HTTPS. تحقق من الإنترنت أو جرّب شبكة أخرى. (" + message + ")");
-    }
-    throw new Error("تعذر تنفيذ طلب API: " + message);
-  }
-  if (status < 200 || status >= 300) throw new Error(explainApiError(status, data));
-  return data;
-}
-
-function bytes(value) {
-  if (!Number.isFinite(value)) return "—";
-  const units = ["B", "KB", "MB", "GB", "TB"];
-  let n = value, i = 0;
-  while (n >= 1024 && i < units.length - 1) { n /= 1024; i++; }
-  return `${n.toFixed(1)} ${units[i]}`;
-}
-
-function setState(state) {
-  const running = state === "running";
-  $("statusDot").classList.toggle("online", running);
-  $("statusText").textContent = running ? "Online" : (state || "Unknown");
-  $("serverState").textContent = running ? "يعمل" : (state || "غير معروف");
-}
-
-async function refresh() {
-  const [server, resourceData] = await Promise.all([api(""), api("/resources")]);
-  const attr = server?.attributes || {};
-  const resources = resourceData?.attributes?.resources || {};
-  setState(resourceData?.attributes?.current_state || "unknown");
-  $("serverName").textContent = attr.name || "BloodMC";
-  $("cpu").textContent = Number.isFinite(resources.cpu_absolute) ? `${resources.cpu_absolute.toFixed(1)}%` : "—";
-  $("memory").textContent = bytes(resources.memory_bytes);
-  $("memoryLimit").textContent = `من ${bytes(resources.memory_limit_bytes)}`;
-  $("disk").textContent = bytes(resources.disk_bytes);
-  $("diskLimit").textContent = `من ${(attr.limits?.disk || 0).toLocaleString("en-US")} MB`;
-}
-
-function logout() {
-  apiKey = "";
-  clearInterval(refreshTimer);
-  $("apiKey").value = "";
-  $("dashboard").hidden = true;
-  $("loginPanel").hidden = false;
-  $("loginMessage").textContent = "تم تسجيل الخروج. تم مسح المفتاح من الذاكرة.";
-}
-
-$("loginForm").addEventListener("submit", async (event) => {
-  event.preventDefault();
-  apiKey = $("apiKey").value.trim();
-  if (!apiKey) return;
-  $("loginMessage").textContent = "جارٍ الاتصال المباشر بـ PrimeHost...";
-  try {
-    await refresh();
-    $("loginPanel").hidden = true;
-    $("dashboard").hidden = false;
-    $("loginMessage").textContent = "تم الاتصال بسيرفر BloodMC.";
-    clearInterval(refreshTimer);
-    refreshTimer = setInterval(() => refresh().catch((e) => $("actionMessage").textContent = e.message), 15000);
-  } catch (error) {
-    apiKey = "";
-    $("loginMessage").textContent = error.message;
-  }
-});
-
-document.querySelectorAll("[data-power]").forEach((button) => {
-  button.addEventListener("click", async () => {
-    const signal = button.dataset.power;
-    if (signal === "stop" && !confirm("هل تريد إيقاف السيرفر؟")) return;
-    if (signal === "restart" && !confirm("هل تريد إعادة تشغيل السيرفر؟")) return;
-    button.disabled = true;
-    $("actionMessage").textContent = "جارٍ إرسال الطلب...";
-    try {
-      await api("/power", { method: "POST", body: JSON.stringify({ signal }) });
-      $("actionMessage").textContent = "تم إرسال الطلب بنجاح.";
-      setTimeout(() => refresh().catch(() => {}), 2500);
-    } catch (error) { $("actionMessage").textContent = error.message; }
-    finally { button.disabled = false; }
-  });
-});
-
-$("commandForm").addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const command = $("command").value.trim();
-  if (!command) return;
-  try {
-    await api("/command", { method: "POST", body: JSON.stringify({ command }) });
-    $("actionMessage").textContent = "تم إرسال الأمر.";
-    $("command").value = "";
-  } catch (error) { $("actionMessage").textContent = error.message; }
-});
-
-$("refresh").addEventListener("click", () => refresh().then(() => $("actionMessage").textContent = "تم تحديث البيانات.").catch(e => $("actionMessage").textContent = e.message));
-$("logout").addEventListener("click", logout);
-$("loginPanel").hidden = false;
+const $=id=>document.getElementById(id);
+let apiKey="",refreshTimer=null,currentDirectory="/",editingFile="";
+const BASE="https://panel.primehost.cc/api/client/servers/cb21b17b";
+const allowedPath=/^\/(?:|resources|power|command|files\/(?:list|contents|create-folder|delete))$/;
+function parseBody(raw){if(!raw)return null;try{return JSON.parse(raw)}catch{return{message:String(raw).slice(0,400)}}}
+function explain(status,data){const d=data?.errors?.[0]?.detail||data?.message||data?.error;if(status===401)return"مفتاح API غير صحيح أو تم إلغاؤه (401).";if(status===403)return"المفتاح لا يملك الصلاحية المطلوبة (403).";if(status===404)return"السيرفر أو الملف غير موجود (404).";if(status===409)return"العملية غير متاحة في حالة السيرفر الحالية (409).";if(status===422)return"البيانات المرسلة غير مقبولة (422). "+(d||"");if(status===429)return"طلبات كثيرة؛ انتظر قليلاً.";return"خطأ من PrimeHost (HTTP "+status+"). "+(d||"")}
+async function api(path,options={}){if(!apiKey)throw Error("سجل الدخول أولاً.");const u=new URL(BASE+path);if(!allowedPath.test(u.pathname.replace("/api/client/servers/cb21b17b","")))throw Error("مسار API غير مسموح.");const headers={Accept:"Application/vnd.pterodactyl.v1+json",Authorization:"Bearer "+apiKey,...(options.headers||{})};if(options.json!==false&&options.body!==undefined)headers["Content-Type"]="application/json";let status,data;try{if(window.bloodmcDesktop?.request){const r=await window.bloodmcDesktop.request({url:u.href,method:options.method||"GET",headers,body:options.body??null});status=r.status;data=r.data}else{const r=await fetch(u.href,{...options,headers});status=r.status;data=parseBody(r.status===204?"":await r.text())}}catch(e){throw Error(/timeout|abort/i.test(String(e))?"انتهت مهلة الاتصال بـ PrimeHost.":"تعذر الاتصال بـ PrimeHost: "+(e.message||e))}if(status<200||status>=300)throw Error(explain(status,data));return data}
+function bytes(v){if(!Number.isFinite(Number(v)))return"—";let n=Number(v),u=["B","KB","MB","GB","TB"],i=0;while(n>=1024&&i<u.length-1){n/=1024;i++}return n.toFixed(1)+" "+u[i]}
+function state(s){const running=s==="running";$("statusDot").classList.toggle("online",running);$("statusText").textContent=running?"متصل · يعمل":s==="offline"?"متصل · متوقف":s||"غير معروف";$("serverState").textContent=running?"يعمل":s==="offline"?"متوقف":s||"غير معروف"}
+async function refresh(){const [s,r]=await Promise.all([api(""),api("/resources")]);const a=s?.attributes||{},x=r?.attributes||{},v=x.resources||{};state(x.current_state||"unknown");$("serverName").textContent=a.name||"BloodMC";$("cpu").textContent=Number.isFinite(v.cpu_absolute)?v.cpu_absolute.toFixed(1)+"%":"—";$("memory").textContent=bytes(v.memory_bytes);$("memoryLimit").textContent="من "+bytes(v.memory_limit_bytes);$("disk").textContent=bytes(v.disk_bytes);$("diskLimit").textContent="من "+(a.limits?.disk??"—")+" MB"}
+function setAutoRefresh(){clearInterval(refreshTimer);const n=Number($("refreshRate").value);if(n&&apiKey)refreshTimer=setInterval(()=>refresh().catch(e=>notice(e.message)),n)}
+function notice(t){$("actionMessage").textContent=t}
+function logLine(t,cls=""){const p=document.createElement("p");p.textContent=t;if(cls)p.className=cls;$("consoleOutput").append(p);$("consoleOutput").scrollTop=$("consoleOutput").scrollHeight}
+function logout(){apiKey="";clearInterval(refreshTimer);$("apiKey").value="";$("dashboard").hidden=true;$("loginPanel").hidden=false;$("loginMessage").textContent="تم تسجيل الخروج ومسح المفتاح من الذاكرة.";state("غير متصل")}
+$("loginForm").addEventListener("submit",async e=>{e.preventDefault();apiKey=$("apiKey").value.trim();$("loginMessage").textContent="جارٍ التحقق من المفتاح...";try{await refresh();$("loginPanel").hidden=true;$("dashboard").hidden=false;$("loginMessage").textContent="تم الاتصال بنجاح.";setAutoRefresh()}catch(err){apiKey="";$("loginMessage").textContent=err.message}});
+document.querySelectorAll("[data-power]").forEach(b=>b.addEventListener("click",async()=>{const signal=b.dataset.power;if(signal!=="start"&&!confirm(signal==="stop"?"هل تريد إيقاف السيرفر؟":"هل تريد إعادة تشغيل السيرفر؟"))return;b.disabled=true;notice("جارٍ إرسال طلب الطاقة...");try{await api("/power",{method:"POST",body:JSON.stringify({signal})});notice("تم إرسال طلب "+signal+" إلى PrimeHost.");setTimeout(()=>refresh().catch(e=>notice(e.message)),2500)}catch(e){notice(e.message)}finally{b.disabled=false}}));
+$("commandForm").addEventListener("submit",async e=>{e.preventDefault();const c=$("command").value.trim();if(!c)return;try{await api("/command",{method:"POST",body:JSON.stringify({command:c})});logLine("> "+c);logLine("تم إرسال الأمر إلى السيرفر.","terminal-muted");$("command").value=""}catch(err){logLine("خطأ: "+err.message);notice(err.message)}});
+async function refreshClick(){try{await refresh();notice("تم تحديث الموارد.")}catch(e){notice(e.message)}}
+$("refresh").addEventListener("click",refreshClick);$("refreshTop").addEventListener("click",refreshClick);$("logout").addEventListener("click",logout);
+function normalizeDir(d){const parts=d.split("/").filter(Boolean);const stack=[];for(const p of parts){if(p==="..")stack.pop();else if(p!==".")stack.push(p)}return"/"+stack.join("/")}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+async function loadFiles(dir=currentDirectory){currentDirectory=normalizeDir(dir);$("currentPath").textContent=currentDirectory;$("fileList").innerHTML='<div class="empty-state">جارٍ تحميل الملفات...</div>';try{const q=encodeURIComponent(currentDirectory);const d=await api("/files/list?directory="+q);const rows=Array.isArray(d?.data)?d.data:[];$("fileList").replaceChildren();if(currentDirectory!=="/"){const up=document.createElement("button");up.className="file-row";up.textContent="↰ .. الرجوع للمجلد السابق";up.addEventListener("click",()=>loadFiles(currentDirectory.split("/").slice(0,-1).join("/")||"/"));$("fileList").append(up)}if(!rows.length){const empty=document.createElement("div");empty.className="empty-state";empty.textContent="هذا المجلد فارغ."; $("fileList").append(empty)}rows.sort((a,b)=>(a.attributes?.is_file===b.attributes?.is_file?0:a.attributes?.is_file?1:-1)).forEach(item=>{const f=item.attributes||item;const name=f.name||"";const file=!!f.is_file;const row=document.createElement("div");row.className="file-row";const icon=document.createElement("span");icon.className="file-icon";icon.textContent=file?"▧":"▰";const label=document.createElement("span");label.className="file-name";label.textContent=name;const meta=document.createElement("small");meta.className="muted";meta.textContent=file?bytes(f.size):"مجلد";const actions=document.createElement("div");actions.className="file-actions";if(file){const open=document.createElement("button");open.className="btn btn-small";open.textContent="فتح";open.addEventListener("click",()=>openFile(name));actions.append(open)}const del=document.createElement("button");del.className="btn btn-small btn-danger";del.textContent="حذف";del.addEventListener("click",()=>deleteFile(name));actions.append(del);row.append(icon,label,meta,actions);if(!file){row.style.cursor="pointer";label.style.cursor="pointer";label.addEventListener("click",()=>loadFiles(normalizeDir(currentDirectory+"/"+name)));icon.addEventListener("click",()=>loadFiles(normalizeDir(currentDirectory+"/"+name)))}$("fileList").append(row)})}catch(e){$("fileList").innerHTML='<div class="empty-state">'+esc(e.message)+'</div>'}}
+$("loadFiles").addEventListener("click",()=>loadFiles());$("goRoot").addEventListener("click",()=>loadFiles("/"));
+$("newFolder").addEventListener("click",async()=>{const name=prompt("اسم المجلد الجديد:");if(!name||!name.trim())return;try{await api("/files/create-folder",{method:"POST",body:JSON.stringify({root:currentDirectory,name:name.trim()})});await loadFiles();$("toolsMessage").textContent="تم إنشاء المجلد."}catch(e){$("toolsMessage").textContent=e.message}});
+async function deleteFile(name){if(!confirm("تأكيد حذف "+name+"؟ لا يمكن التراجع عن الحذف."))return;try{await api("/files/delete",{method:"POST",body:JSON.stringify({root:currentDirectory,files:[name]})});await loadFiles()}catch(e){alert(e.message)}}
+async function openFile(name){const full=normalizeDir(currentDirectory+"/"+name);try{const content=await api("/files/contents?file="+encodeURIComponent(full));editingFile=full;$("editorTitle").textContent="تحرير: "+name;$("fileEditor").value=typeof content==="string"?content:JSON.stringify(content,null,2);$("editorDialog").showModal()}catch(e){alert("تعذر فتح الملف: "+e.message)}}
+$("saveFile").addEventListener("click",async()=>{try{await api("/files/write?file="+encodeURIComponent(editingFile),{method:"POST",body:$("fileEditor").value,json:false,headers:{"Content-Type":"text/plain"}});$("editorDialog").close();alert("تم حفظ الملف.")}catch(e){alert("تعذر حفظ الملف: "+e.message)}});
+$("testConnection").addEventListener("click",async()=>{try{await refresh();$("toolsMessage").textContent="نجح فحص الاتصال وتحديث الموارد."}catch(e){$("toolsMessage").textContent=e.message}});
+$("clearCache").addEventListener("click",async()=>{if(!confirm("سيتم مسح كاش الواجهة المحلي فقط. لن تُحذف ملفات السيرفر. متابعة؟"))return;try{if("caches"in window){const keys=await caches.keys();await Promise.all(keys.map(k=>caches.delete(k)))}$("toolsMessage").textContent="تم تنظيف كاش الواجهة المحلي. لم يتم لمس ملفات السيرفر."}catch(e){$("toolsMessage").textContent="تعذر تنظيف الكاش: "+e.message}});
+$("refreshRate").addEventListener("change",setAutoRefresh);
+$("copyAddress").addEventListener("click",async()=>{try{await navigator.clipboard.writeText("134.255.255.67:27064");$("toolsMessage").textContent="تم نسخ عنوان السيرفر."}catch{$("toolsMessage").textContent="تعذر النسخ من هذا الجهاز."}});
+document.querySelectorAll(".nav-link").forEach(a=>a.addEventListener("click",()=>{document.querySelectorAll(".nav-link").forEach(x=>x.classList.remove("active"));a.classList.add("active")}));
+$("loginPanel").hidden=false;

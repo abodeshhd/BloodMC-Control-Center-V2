@@ -4,17 +4,30 @@ let refreshTimer = null;
 const PANEL_BASE = "https://panel.primehost.cc/api/client/servers/cb21b17b";
 
 async function api(path, options = {}) {
-  const response = await fetch(`${PANEL_BASE}${path}`, {
-    ...options,
-    headers: {
-      Accept: "Application/vnd.pterodactyl.v1+json",
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-      ...(options.headers || {})
-    }
-  });
-  const data = response.status === 204 ? null : await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(response.status === 401 || response.status === 403 ? "مفتاح API غير صحيح أو لا يملك صلاحية Client API." : `خطأ من PrimeHost: HTTP ${response.status}`);
+  const url = `${PANEL_BASE}${path}`;
+  const headers = {
+    Accept: "Application/vnd.pterodactyl.v1+json",
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${apiKey}`,
+    ...(options.headers || {})
+  };
+  let status, data;
+  if (window.bloodmcDesktop?.request) {
+    const result = await window.bloodmcDesktop.request({
+      url, method: options.method || "GET", headers, body: options.body || null
+    });
+    status = result.status;
+    data = result.data;
+  } else {
+    const response = await fetch(url, { ...options, headers });
+    status = response.status;
+    data = status === 204 ? null : await response.json().catch(() => ({}));
+  }
+  if (status < 200 || status >= 300) {
+    throw new Error(status === 401 || status === 403
+      ? "مفتاح API غير صحيح أو لا يملك صلاحية Client API."
+      : `خطأ من PrimeHost: HTTP ${status}`);
+  }
   return data;
 }
 

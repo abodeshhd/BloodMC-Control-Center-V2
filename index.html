@@ -22,14 +22,14 @@
 
     <section class="panel login" id="setupPanel">
       <h3>الإعداد الأول — ربط PrimeHost</h3>
-      <p>أدخل بيانات الربط مرة واحدة. تُرسل إلى الخادم الخلفي ولا تُحفظ في المتصفح.</p>
+      <p>إذا كانت الاستضافة تدعم التخزين الدائم، يمكن استخدام الإعداد الأول. على Render أضف المفاتيح من Environment بدلاً من هذه الخطوة.</p>
       <form id="setupForm">
         <input id="setupSecret" type="password" placeholder="رمز التهيئة SETUP_SECRET" autocomplete="off" required>
         <input id="apiKeyInput" type="password" placeholder="مفتاح PrimeHost Client API" autocomplete="off" required>
         <input id="newDashboardPassword" type="password" placeholder="كلمة مرور اللوحة (12 حرفاً أو أكثر)" minlength="12" autocomplete="new-password" required>
         <button class="primary">حفظ إعداد الاتصال</button>
       </form>
-      <small id="setupMessage">قبلها أضف SETUP_SECRET في Environment Variables باستضافة التطبيق.</small>
+      <small id="setupMessage">على Render استخدم Environment Variables: PANEL_API_KEY و DASHBOARD_PASSWORD. لا تضع أسرارك في GitHub.</small>
     </section>
 
     <section class="panel login" id="loginPanel">

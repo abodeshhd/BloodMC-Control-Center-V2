@@ -1,8 +1,8 @@
 {
   "name": "bloodmc-control-center-v2",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
-  "description": "Responsive BloodMC server control dashboard",
+  "description": "Secure BloodMC dashboard for a Pterodactyl-compatible hosting panel",
   "scripts": { "start": "node server.js" },
-  "engines": { "node": ">=18" }
+  "engines": { "node": ">=20" }
 }

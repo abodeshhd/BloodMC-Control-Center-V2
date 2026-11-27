@@ -38,7 +38,7 @@ async function refresh() {
   $("memory").textContent = bytes(resources.memory_bytes);
   $("memoryLimit").textContent = `من ${bytes(resources.memory_limit_bytes)}`;
   $("disk").textContent = bytes(resources.disk_bytes);
-  $("diskLimit").textContent = `من ${bytes((attr.limits?.disk || 0) * 1024 * 1024)}`;
+  $("diskLimit").textContent = `من ${(attr.limits?.disk || 0) * 1024 * 1024}`;
 }
 
 function logout() {
@@ -58,7 +58,8 @@ $("loginForm").addEventListener("submit", async (event) => {
     await refresh();
     $("loginPanel").hidden = true;
     $("dashboard").hidden = false;
-    $("loginMessage").textContent = "تم الاتصال.";
+    $("loginMessage").textContent = "تم الاتصال بسيرفر BloodMC.";
+    clearInterval(refreshTimer);
     refreshTimer = setInterval(() => refresh().catch((e) => $("actionMessage").textContent = e.message), 15000);
   } catch (error) {
     dashboardPassword = "";
@@ -95,46 +96,16 @@ $("commandForm").addEventListener("submit", async (event) => {
 
 $("refresh").addEventListener("click", () => refresh().then(() => $("actionMessage").textContent = "تم تحديث البيانات.").catch(e => $("actionMessage").textContent = e.message));
 $("logout").addEventListener("click", logout);
-const setupForm = $("setupForm");
-if (setupForm) setupForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const button = setupForm.querySelector("button");
-  button.disabled = true;
-  $("setupMessage").textContent = "جارٍ حفظ الإعداد بشكل آمن...";
-  try {
-    const response = await fetch(new URL("/api/setup", API_BASE || window.location.href), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        setupSecret: $("setupSecret").value,
-        apiKey: $("apiKeyInput").value,
-        dashboardPassword: $("newDashboardPassword").value
-      })
-    });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(data.error || "تعذر حفظ الإعداد.");
-    setupForm.reset();
-    $("setupPanel").hidden = true;
-    $("setupMessage").textContent = data.message || "تم الحفظ.";
-    $("loginMessage").textContent = "الإعداد جاهز. سجل الدخول بكلمة المرور التي أنشأتها.";
-  } catch (error) {
-    $("setupMessage").textContent = error.message;
-  } finally { button.disabled = false; }
-});
 
 async function checkInitialSetup() {
   try {
     const response = await fetch(new URL("/api/status", API_BASE || window.location.href));
     const status = await response.json();
-    if (status.configured) {
-      $("setupPanel").hidden = true;
-      $("loginPanel").hidden = false;
-    } else {
-      $("setupPanel").hidden = false;
-      $("loginPanel").hidden = true;
-    }
+    $("loginPanel").hidden = !status.configured;
+    if (!status.configured) $("loginMessage").textContent = "الخادم غير مجهز بعد. أكمل إعداد المتغيرات السرية في Render مرة واحدة.";
   } catch {
-    $("setupMessage").textContent = "تعذر فحص إعداد الخادم. تحقق من اتصال الإنترنت ورابط الخدمة.";
+    $("loginPanel").hidden = false;
+    $("loginMessage").textContent = "تعذر الاتصال بالخادم. تحقق من رابط الخدمة.";
   }
 }
 checkInitialSetup();

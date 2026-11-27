@@ -102,7 +102,7 @@ if (setupForm) setupForm.addEventListener("submit", async (event) => {
   button.disabled = true;
   $("setupMessage").textContent = "جارٍ حفظ الإعداد بشكل آمن...";
   try {
-    const response = await fetch("/api/setup", {
+    const response = await fetch(new URL("/api/setup", API_BASE || window.location.href), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

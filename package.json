@@ -5,7 +5,7 @@
   "description": "BloodMC Control Center by DEV_ABOUDI",
   "main": "electron/main.cjs",
   "scripts": {
-    "build:windows": "electron-builder --win nsis",
+    "build:windows": "electron-builder --win nsis --publish never",
     "build:android": "node scripts/prepare-www.js && cap sync android"
   },
   "engines": {

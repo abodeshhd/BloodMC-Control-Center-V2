@@ -20,6 +20,18 @@
     <header><div><small>SERVER MANAGEMENT <b class="owner-tag">BY DEV_ABOUDI</b></small><h1>لوحة التحكم</h1></div><div class="profile"><span class="dot" id="statusDot"></span><span id="statusText">غير متصل</span></div></header>
     <section class="welcome" id="overview"><div><p>مرحباً بك في مركز التحكم</p><h2>إدارة سيرفر BloodMC</h2><small>اتصال مباشر بلوحة PrimeHost عبر API آمن.</small></div><div class="hero-mark" aria-hidden="true"><div class="hero-ring"></div><div class="cube">B</div><span class="orbit orbit-one"></span><span class="orbit orbit-two"></span></div></section>
 
+    <section class="panel login" id="setupPanel">
+      <h3>الإعداد الأول — ربط PrimeHost</h3>
+      <p>أدخل بيانات الربط مرة واحدة. تُرسل إلى الخادم الخلفي ولا تُحفظ في المتصفح.</p>
+      <form id="setupForm">
+        <input id="setupSecret" type="password" placeholder="رمز التهيئة SETUP_SECRET" autocomplete="off" required>
+        <input id="apiKeyInput" type="password" placeholder="مفتاح PrimeHost Client API" autocomplete="off" required>
+        <input id="newDashboardPassword" type="password" placeholder="كلمة مرور اللوحة (12 حرفاً أو أكثر)" minlength="12" autocomplete="new-password" required>
+        <button class="primary">حفظ إعداد الاتصال</button>
+      </form>
+      <small id="setupMessage">قبلها أضف SETUP_SECRET في Environment Variables باستضافة التطبيق.</small>
+    </section>
+
     <section class="panel login" id="loginPanel">
       <h3>تسجيل الدخول</h3>
       <p>أدخل كلمة مرور لوحة التحكم التي ستضعها في إعدادات استضافة التطبيق.</p>

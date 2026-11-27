@@ -38,7 +38,7 @@ async function refresh() {
   $("memory").textContent = bytes(resources.memory_bytes);
   $("memoryLimit").textContent = `من ${bytes(resources.memory_limit_bytes)}`;
   $("disk").textContent = bytes(resources.disk_bytes);
-  $("diskLimit").textContent = `من ${(attr.limits?.disk || 0) * 1024 * 1024}`;
+  $("diskLimit").textContent = `من ${bytes((attr.limits?.disk || 0) * 1024 * 1024)}`;
 }
 
 function logout() {

@@ -18,8 +18,9 @@ loadEnv(path.join(__dirname, ".env"));
 const PORT = Number(process.env.PORT || 3000);
 const PANEL_URL = (process.env.PANEL_URL || "https://panel.primehost.cc").replace(/\/$/, "");
 const SERVER_ID = process.env.PANEL_SERVER_ID || "cb21b17b";
-const API_KEY = process.env.PANEL_API_KEY || "";
-const DASHBOARD_PASSWORD = process.env.DASHBOARD_PASSWORD || "";
+let API_KEY = process.env.PANEL_API_KEY || "";
+const SETUP_SECRET = process.env.SETUP_SECRET || "";
+let DASHBOARD_PASSWORD = process.env.DASHBOARD_PASSWORD || "";
 const ROOT = __dirname;
 const MIME = {
   ".html": "text/html; charset=utf-8",
@@ -82,6 +83,29 @@ async function readJson(req) {
 async function handleApi(req, res, url) {
   if (url.pathname === "/api/health" && req.method === "GET") {
     return send(res, 200, { ok: true, app: "BloodMC Control Center" });
+  }
+  if (url.pathname === "/api/setup" && req.method === "POST") {
+    if (API_KEY || DASHBOARD_PASSWORD) return send(res, 409, { error: "الإعداد مكتمل مسبقاً." });
+    if (!SETUP_SECRET) return send(res, 503, { error: "يجب ضبط SETUP_SECRET في إعدادات استضافة التطبيق أولاً." });
+    let body;
+    try { body = await readJson(req); } catch { return send(res, 400, { error: "بيانات الإعداد غير صالحة." }); }
+    const supplied = Buffer.from(String(body.setupSecret || ""));
+    const expected = Buffer.from(SETUP_SECRET);
+    if (!expected.length || supplied.length !== expected.length || !crypto.timingSafeEqual(supplied, expected)) return send(res, 401, { error: "رمز التهيئة غير صحيح." });
+    const key = typeof body.apiKey === "string" ? body.apiKey.trim() : "";
+    const password = typeof body.dashboardPassword === "string" ? body.dashboardPassword : "";
+    if (key.length < 12 || key.length > 512 || /[\\r\\n]/.test(key) || password.length < 12 || password.length > 200 || /[\\r\\n]/.test(password)) return send(res, 400, { error: "المفتاح غير صالح أو كلمة المرور أقصر من 12 حرفاً." });
+    const envPath = path.join(ROOT, ".env");
+    const envText = `PANEL_URL=${PANEL_URL}\\nPANEL_SERVER_ID=${SERVER_ID}\\nPANEL_API_KEY=${key}\\nDASHBOARD_PASSWORD=${password}\\n`;
+    try {
+      fs.writeFileSync(envPath, envText, { encoding: "utf8", mode: 0o600, flag: "wx" });
+      try { fs.chmodSync(envPath, 0o600); } catch {}
+      process.env.PANEL_API_KEY = key; process.env.DASHBOARD_PASSWORD = password;
+      API_KEY = key; DASHBOARD_PASSWORD = password;
+      return send(res, 200, { ok: true, message: "تم حفظ الإعداد على الخادم. سجل الدخول الآن." });
+    } catch (error) {
+      return send(res, 500, { error: error.code === "EEXIST" ? "ملف الإعداد موجود مسبقاً؛ أعد تشغيل التطبيق بعد ضبط المتغيرات." : "تعذر حفظ الإعداد على الخادم." });
+    }
   }
   if (!DASHBOARD_PASSWORD) {
     return send(res, 503, { error: "Set DASHBOARD_PASSWORD in the private environment settings." });

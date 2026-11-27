@@ -19,10 +19,7 @@ jobs:
       - name: Install dependencies
         run: npm install
       - name: Generate Android project and bundle app UI
-        env:
-          BLOODMC_APP_URL: https://bloodmc-control-center-v2-ktdz.onrender.com
         run: |
-          node scripts/write-app-config.js
           node scripts/prepare-www.js
           npx cap add android
           npx cap sync android
@@ -46,8 +43,6 @@ jobs:
       - name: Install dependencies
         run: npm install
       - name: Build installer
-        env:
-          BLOODMC_APP_URL: https://bloodmc-control-center-v2-ktdz.onrender.com
         run: |
           npm run build:windows
       - uses: actions/upload-artifact@v4

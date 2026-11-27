@@ -19,7 +19,7 @@ ipcMain.handle("primehost-request", async (_event, request) => {
   if (contentType) headers["Content-Type"] = contentType;
   let response;
   try {
-    response = await fetch(target, { method, headers, body: method === "POST" ? (request.body ?? "") : undefined, signal: AbortSignal.timeout(25000) });
+    response = await fetch(target, { method, headers, body: (method === "POST" || method === "PUT") ? (request.body ?? "") : undefined, signal: AbortSignal.timeout(25000) });
   } catch (error) {
     if (error?.name === "TimeoutError" || error?.name === "AbortError") throw new Error("انتهت مهلة الاتصال بـ PrimeHost.");
     throw new Error("تعذر الاتصال بـ PrimeHost عبر HTTPS: " + String(error?.message || error));

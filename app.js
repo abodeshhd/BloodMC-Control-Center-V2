@@ -94,3 +94,29 @@ $("commandForm").addEventListener("submit", async (event) => {
 
 $("refresh").addEventListener("click", () => refresh().then(() => $("actionMessage").textContent = "تم تحديث البيانات.").catch(e => $("actionMessage").textContent = e.message));
 $("logout").addEventListener("click", logout);
+const setupForm = $("setupForm");
+if (setupForm) setupForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const button = setupForm.querySelector("button");
+  button.disabled = true;
+  $("setupMessage").textContent = "جارٍ حفظ الإعداد بشكل آمن...";
+  try {
+    const response = await fetch("/api/setup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        setupSecret: $("setupSecret").value,
+        apiKey: $("apiKeyInput").value,
+        dashboardPassword: $("newDashboardPassword").value
+      })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || "تعذر حفظ الإعداد.");
+    setupForm.reset();
+    $("setupPanel").hidden = true;
+    $("setupMessage").textContent = data.message || "تم الحفظ.";
+    $("loginMessage").textContent = "الإعداد جاهز. سجل الدخول بكلمة المرور التي أنشأتها.";
+  } catch (error) {
+    $("setupMessage").textContent = error.message;
+  } finally { button.disabled = false; }
+});

@@ -1,56 +1,44 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#090b12">
-  <meta name="author" content="DEV_ABOUDI">
-  <meta name="description" content="BloodMC Control Center — designed by DEV_ABOUDI">
-  <title>BloodMC Control Center</title>
-  <link rel="stylesheet" href="styles.css">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#120307">
+<meta name="author" content="DEV_ABOUDI"><meta name="description" content="BloodMC Control Center V2">
+<title>BloodMC Control Center V2</title><link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<div class="app">
-  <aside class="sidebar">
-    <div class="brand"><div class="logo"><span>B</span><i></i></div><div><b>BloodMC</b><small>CONTROL CENTER <em>V2</em></small></div></div>
-    <nav><a class="active" href="#overview">◈ نظرة عامة</a><a href="#performance">▥ الأداء</a><a href="#console">⌘ أوامر الكونسول</a><a href="#settings">⚙ الإعدادات</a></nav>
-    <div class="side-foot">BLOODMC NETWORK <span>V2</span></div>
-  </aside>
-  <main>
-    <header><div><small>SERVER MANAGEMENT <b class="owner-tag">BY DEV_ABOUDI</b></small><h1>لوحة التحكم</h1></div><div class="profile"><span class="dot" id="statusDot"></span><span id="statusText">غير متصل</span></div></header>
-    <section class="welcome" id="overview"><div><p>مرحباً بك في مركز التحكم</p><h2>إدارة سيرفر BloodMC</h2><small>اتصال مباشر بلوحة PrimeHost عبر Client API.</small></div><div class="hero-mark" aria-hidden="true"><div class="hero-ring"></div><div class="cube">B</div><span class="orbit orbit-one"></span><span class="orbit orbit-two"></span></div></section>
-
-    <section class="panel login" id="loginPanel">
-      <h3>تسجيل الدخول</h3>
-      <p>أدخل مفتاح PrimeHost Client API للاتصال بسيرفر BloodMC.</p>
-      <form id="loginForm"><input id="apiKey" type="password" placeholder="PrimeHost API Key" autocomplete="off" required><button class="primary">اتصال</button></form>
-      <small id="loginMessage">المفتاح يبقى في ذاكرة التطبيق فقط حتى تسجيل الخروج. لا تشاركه مع أحد.</small>
-    </section>
-
-    <div id="dashboard" hidden>
-      <section class="stats">
-        <article class="panel"><small>حالة السيرفر</small><strong id="serverState">—</strong><span id="serverName">BloodMC</span></article>
-        <article class="panel"><small>استخدام CPU</small><strong id="cpu">—</strong><span>الاستخدام الحالي</span></article>
-        <article class="panel"><small>الذاكرة RAM</small><strong id="memory">—</strong><span id="memoryLimit">من —</span></article>
-        <article class="panel"><small>التخزين</small><strong id="disk">—</strong><span id="diskLimit">من —</span></article>
-      </section>
-
-      <section class="panel" id="performance">
-        <div class="panel-head"><div><h3>التحكم بالسيرفر</h3><small>الأوامر ترسل إلى PrimeHost</small></div><span class="pill">LIVE API</span></div>
-        <div class="actions"><button class="primary" data-power="start">تشغيل</button><button data-power="restart">إعادة تشغيل</button><button class="danger" data-power="stop">إيقاف</button><button id="refresh">تحديث البيانات</button></div>
-        <p class="hint" id="actionMessage">بانتظار الاتصال.</p>
-      </section>
-
-      <section class="panel" id="console">
-        <div class="panel-head"><div><h3>إرسال أمر للكونسول</h3><small>إرسال أمر واحد إلى السيرفر</small></div><span class="pill">CONSOLE</span></div>
-        <form id="commandForm" class="command-form"><input id="command" maxlength="160" placeholder="مثال: list" autocomplete="off"><button class="primary">إرسال</button></form>
-        <p class="hint">عرض سجل الكونسول المباشر سيضاف بمرحلة WebSocket لاحقة.</p>
-      </section>
-      <section class="panel" id="settings"><div class="panel-head"><div><h3>إعدادات الاتصال</h3><small>PrimeHost · cb21b17b · Direct API</small></div><button id="logout">تسجيل الخروج</button></div><p class="hint">يُمسح مفتاح API عند تسجيل الخروج. لا تستخدم مفتاحاً بصلاحيات أوسع من اللازم.</p></section>
-    </div>
-    <footer><span>© 2026 BloodMC Control Center</span><strong class="copyright">DESIGNED & DEVELOPED BY <b>DEV_ABOUDI</b></strong><span>All Rights Reserved</span></footer>
-  </main>
+<div class="app-shell">
+<aside class="sidebar">
+ <a class="brand" href="#overview"><span class="brand-mark">B</span><span><b>Blood<span>MC</span></b><small>CONTROL CENTER <i>V2</i></small></span></a>
+ <div class="side-label">القائمة الرئيسية</div>
+ <nav id="mainNav">
+  <a class="nav-link active" href="#overview"><b>◈</b> نظرة عامة</a>
+  <a class="nav-link" href="#performance"><b>▥</b> الأداء والموارد</a>
+  <a class="nav-link" href="#console"><b>⌘</b> الكونسول</a>
+  <a class="nav-link" href="#files"><b>▤</b> مدير الملفات</a>
+  <a class="nav-link" href="#tools"><b>✧</b> الأدوات والكاش</a>
+  <a class="nav-link" href="#settings"><b>⚙</b> الإعدادات</a>
+ </nav>
+ <div class="sidebar-bottom"><span class="live-indicator"></span> BLOODMC NETWORK <small>BY DEV_ABOUDI</small></div>
+</aside>
+<main class="main-area">
+<header class="topbar"><div><div class="eyebrow">SERVER MANAGEMENT <span>BY DEV_ABOUDI</span></div><h1>مركز التحكم</h1></div><div class="top-actions"><span class="server-chip"><i id="statusDot"></i><b id="statusText">غير متصل</b></span><button class="icon-btn" id="refreshTop" title="تحديث">↻</button></div></header>
+<section class="hero" id="overview"><div class="hero-copy"><div class="hero-kicker">WELCOME BACK · ADMINISTRATOR</div><h2>سيطرتك الكاملة<br><span>على BloodMC</span></h2><p>إدارة ومراقبة السيرفر من مكان واحد، بواجهة سريعة وآمنة.</p><div class="hero-meta"><span>● PRIMEHOST API</span><span>● DIRECT CONNECTION</span></div></div><div class="hero-emblem"><div class="emblem-ring"></div><div class="emblem-core">B</div><i></i></div></section>
+<section class="login-card panel" id="loginPanel"><div class="section-heading"><div><span class="eyebrow">SECURE ACCESS</span><h3>الاتصال بلوحة PrimeHost</h3></div><span class="tag">CLIENT API</span></div><p class="muted">أدخل مفتاح Client API الخاص بك. لا ترسله لأي شخص.</p><form id="loginForm" class="inline-form"><input id="apiKey" type="password" placeholder="PrimeHost Client API Key" autocomplete="off" required><button class="btn btn-primary">اتصال آمن ↗</button></form><small id="loginMessage" class="muted">المفتاح يبقى في ذاكرة التطبيق حتى تسجيل الخروج.</small></section>
+<div id="dashboard" hidden>
+<section class="metric-grid" id="performance">
+ <article class="metric panel"><div class="metric-top"><span>حالة السيرفر</span><b>01</b></div><strong id="serverState">—</strong><small id="serverName">BloodMC</small></article>
+ <article class="metric panel"><div class="metric-top"><span>معالج CPU</span><b>02</b></div><strong id="cpu">—</strong><small>الاستخدام الحالي</small></article>
+ <article class="metric panel"><div class="metric-top"><span>ذاكرة RAM</span><b>03</b></div><strong id="memory">—</strong><small id="memoryLimit">من —</small></article>
+ <article class="metric panel"><div class="metric-top"><span>التخزين</span><b>04</b></div><strong id="disk">—</strong><small id="diskLimit">من —</small></article>
+</section>
+<section class="panel section-card"><div class="section-heading"><div><span class="eyebrow">POWER CONTROL</span><h3>التحكم بالطاقة</h3></div><span class="tag">LIVE API</span></div><div class="power-grid"><button class="btn btn-primary" data-power="start">▶ تشغيل السيرفر</button><button class="btn" data-power="restart">⟳ إعادة التشغيل</button><button class="btn btn-danger" data-power="stop">■ إيقاف السيرفر</button><button class="btn" id="refresh">↻ تحديث الموارد</button></div><p class="notice" id="actionMessage">جاهز لتنفيذ أوامرك.</p></section>
+<section class="panel section-card" id="console"><div class="section-heading"><div><span class="eyebrow">COMMAND TERMINAL</span><h3>كونسول الأوامر</h3></div><span class="tag">CONSOLE</span></div><div class="terminal"><div class="terminal-bar"><span>● ● ●</span><small>BloodMC / console</small></div><div class="terminal-body" id="consoleOutput"><p>مرحباً بك في كونسول BloodMC.</p><p class="terminal-muted">اكتب أمراً لإرساله إلى السيرفر.</p></div><form id="commandForm" class="terminal-input"><span>›</span><input id="command" maxlength="160" placeholder="اكتب الأمر هنا..." autocomplete="off"><button class="btn btn-primary">إرسال</button></form></div></section>
+<section class="panel section-card" id="files"><div class="section-heading"><div><span class="eyebrow">SERVER STORAGE</span><h3>مدير الملفات</h3></div><button class="btn btn-small" id="loadFiles">↻ تحديث الملفات</button></div><div class="file-toolbar"><button class="btn btn-small" id="goRoot">⌂ الجذر</button><code id="currentPath">/</code><button class="btn btn-small btn-primary" id="newFolder">＋ مجلد جديد</button></div><div id="fileList" class="file-list"><div class="empty-state">اتصل بالسيرفر ثم اضغط تحديث الملفات.</div></div><p class="notice">العمليات تعتمد على صلاحيات Client API. لا تحذف ملفات النظام أو ملفات العالم دون نسخة احتياطية.</p></section>
+<section class="panel section-card" id="tools"><div class="section-heading"><div><span class="eyebrow">SYSTEM UTILITIES</span><h3>الأدوات والكاش</h3></div><span class="tag">TOOLS</span></div><div class="tool-grid"><article class="tool-card"><b>⌁</b><h4>فحص الاتصال</h4><p>اختبار الوصول إلى واجهة PrimeHost وتحديث بيانات السيرفر.</p><button class="btn btn-small" id="testConnection">بدء الفحص</button></article><article class="tool-card"><b>▧</b><h4>تنظيف كاش الواجهة</h4><p>مسح Cache Storage المحلي للتطبيق فقط، وليس ملفات السيرفر أو العوالم.</p><button class="btn btn-small btn-danger" id="clearCache">تنظيف الكاش</button></article><article class="tool-card"><b>◷</b><h4>التحديث التلقائي</h4><p>تحديد فترة تحديث بيانات الموارد أثناء الاتصال.</p><select id="refreshRate"><option value="15000">كل 15 ثانية</option><option value="30000">كل 30 ثانية</option><option value="60000">كل دقيقة</option><option value="0">إيقاف التحديث</option></select></article></div><p id="toolsMessage" class="notice">الأدوات جاهزة بعد الاتصال.</p></section>
+<section class="panel section-card" id="settings"><div class="section-heading"><div><span class="eyebrow">PREFERENCES & SECURITY</span><h3>الإعدادات والأمان</h3></div><span class="tag">PRIVATE</span></div><div class="settings-row"><div><b>جلسة الاتصال</b><small>مفتاح API محفوظ مؤقتاً في ذاكرة التطبيق فقط.</small></div><button class="btn btn-danger" id="logout">تسجيل الخروج ومسح المفتاح</button></div><div class="settings-row"><div><b>السيرفر المرتبط</b><small>PrimeHost · cb21b17b</small></div><span class="tag">DIRECT API</span></div><div class="settings-row"><div><b>عنوان السيرفر</b><small dir="ltr">134.255.255.67:27064</small></div><button class="btn btn-small" id="copyAddress">نسخ العنوان</button></div></section>
 </div>
+<footer><span>© 2026 BloodMC Control Center V2</span><strong>DESIGNED & DEVELOPED BY <b>DEV_ABOUDI</b></strong><span>ALL RIGHTS RESERVED</span></footer>
+</main></div>
+<dialog id="editorDialog" class="editor-dialog"><form method="dialog"><div class="section-heading"><h3 id="editorTitle">محرر الملفات</h3><button class="btn btn-small">إغلاق</button></div><textarea id="fileEditor" spellcheck="false"></textarea><div class="dialog-actions"><button type="button" class="btn btn-primary" id="saveFile">حفظ الملف</button></div></form></dialog>
 <script src="app.js" defer></script>
-</body>
-</html>
+</body></html>

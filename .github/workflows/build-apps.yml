@@ -1,14 +1,10 @@
 name: Build BloodMC apps
-
 on:
   workflow_dispatch:
   push:
-    tags:
-      - "v*"
-
+    tags: ["v*"]
 permissions:
   contents: read
-
 jobs:
   android:
     name: Android APK
@@ -16,26 +12,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with:
-          node-version: 22
+        with: { node-version: 22 }
       - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "21"
+        with: { distribution: temurin, java-version: "21" }
       - name: Install dependencies
         run: npm install
-      - name: Validate dashboard URL
+      - name: Validate app API URL
         env:
           BLOODMC_APP_URL: ${{ vars.BLOODMC_APP_URL }}
         run: |
           if [ -z "$BLOODMC_APP_URL" ] || [[ "$BLOODMC_APP_URL" != https://* ]]; then
-            echo "Set repository variable BLOODMC_APP_URL to your deployed HTTPS dashboard URL."
+            echo "Set repository variable BLOODMC_APP_URL to your deployed HTTPS API URL."
             exit 1
           fi
-      - name: Generate Android project
+      - name: Generate Android project and bundle app UI
         env:
           BLOODMC_APP_URL: ${{ vars.BLOODMC_APP_URL }}
         run: |
+          node scripts/write-app-config.js
+          node scripts/prepare-www.js
           npx cap add android
           npx cap sync android
       - name: Build debug APK
@@ -48,15 +43,13 @@ jobs:
           name: BloodMC-Android-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
-
   windows:
     name: Windows EXE
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with:
-          node-version: 22
+        with: { node-version: 22 }
       - name: Install dependencies
         run: npm install
       - name: Build installer
@@ -64,7 +57,7 @@ jobs:
           BLOODMC_APP_URL: ${{ vars.BLOODMC_APP_URL }}
         run: |
           if (-not $env:BLOODMC_APP_URL.StartsWith("https://")) {
-            throw "Set repository variable BLOODMC_APP_URL to your deployed HTTPS dashboard URL."
+            throw "Set repository variable BLOODMC_APP_URL to your deployed HTTPS API URL."
           }
           npm run build:windows
       - uses: actions/upload-artifact@v4

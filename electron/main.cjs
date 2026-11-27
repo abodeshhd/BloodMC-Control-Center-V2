@@ -10,8 +10,8 @@ ipcMain.handle("primehost-request", async (_event, request) => {
   const route = target.pathname.startsWith(API_PREFIX) ? target.pathname.slice(API_PREFIX.length) : null;
   if (target.origin !== PANEL_ORIGIN || route === null || !ALLOWED.has(route)) throw new Error("تم رفض طلب API غير مسموح.");
   const method = String(request?.method || "GET").toUpperCase();
-  if (!["GET","POST"].includes(method)) throw new Error("طريقة الطلب غير مسموحة.");
-  if ((route === "/files/list" && method !== "GET") || (route === "/files/contents" && method !== "GET") || (["/files/create-folder","/files/delete","/files/write","/power","/command"].includes(route) && method !== "POST")) throw new Error("طريقة الطلب لا تطابق المسار.");
+  if (!["GET","POST","PUT"].includes(method)) throw new Error("طريقة الطلب غير مسموحة.");
+  if ((route === "/files/list" && method !== "GET") || (route === "/files/contents" && method !== "GET") || (["/files/create-folder","/files/delete","/power","/command"].includes(route) && method !== "POST") || (route === "/files/write" && method !== "PUT")) throw new Error("طريقة الطلب لا تطابق المسار.");
   const authorization = String(request?.headers?.Authorization || "");
   if (!authorization.startsWith("Bearer ") || authorization.length < 20) throw new Error("أدخل مفتاح PrimeHost Client API صالحاً.");
   const headers = { Authorization: authorization, Accept: "Application/vnd.pterodactyl.v1+json" };

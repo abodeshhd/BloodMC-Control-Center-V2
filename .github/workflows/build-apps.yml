@@ -1,0 +1,76 @@
+name: Build BloodMC apps
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    name: Android APK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: Install dependencies
+        run: npm install
+      - name: Validate dashboard URL
+        env:
+          BLOODMC_APP_URL: ${{ vars.BLOODMC_APP_URL }}
+        run: |
+          if [ -z "$BLOODMC_APP_URL" ] || [[ "$BLOODMC_APP_URL" != https://* ]]; then
+            echo "Set repository variable BLOODMC_APP_URL to your deployed HTTPS dashboard URL."
+            exit 1
+          fi
+      - name: Generate Android project
+        env:
+          BLOODMC_APP_URL: ${{ vars.BLOODMC_APP_URL }}
+        run: |
+          npx cap add android
+          npx cap sync android
+      - name: Build debug APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: BloodMC-Android-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+
+  windows:
+    name: Windows EXE
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm install
+      - name: Build installer
+        env:
+          BLOODMC_APP_URL: ${{ vars.BLOODMC_APP_URL }}
+        run: |
+          if (-not $env:BLOODMC_APP_URL.StartsWith("https://")) {
+            throw "Set repository variable BLOODMC_APP_URL to your deployed HTTPS dashboard URL."
+          }
+          npm run build:windows
+      - uses: actions/upload-artifact@v4
+        with:
+          name: BloodMC-Windows-EXE
+          path: release/*.exe
+          if-no-files-found: error

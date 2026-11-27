@@ -1,0 +1,8 @@
+{
+  "name": "bloodmc-control-center-v2",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Responsive BloodMC server control dashboard",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=18" }
+}

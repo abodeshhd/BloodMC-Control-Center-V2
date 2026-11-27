@@ -94,9 +94,9 @@ async function handleApi(req, res, url) {
     if (!expected.length || supplied.length !== expected.length || !crypto.timingSafeEqual(supplied, expected)) return send(res, 401, { error: "رمز التهيئة غير صحيح." });
     const key = typeof body.apiKey === "string" ? body.apiKey.trim() : "";
     const password = typeof body.dashboardPassword === "string" ? body.dashboardPassword : "";
-    if (key.length < 12 || key.length > 512 || /[\\r\\n]/.test(key) || password.length < 12 || password.length > 200 || /[\\r\\n]/.test(password)) return send(res, 400, { error: "المفتاح غير صالح أو كلمة المرور أقصر من 12 حرفاً." });
+    if (key.length < 12 || key.length > 512 || /[\\r\n]/.test(key) || password.length < 12 || password.length > 200 || /[\\r\n]/.test(password)) return send(res, 400, { error: "المفتاح غير صالح أو كلمة المرور أقصر من 12 حرفاً." });
     const envPath = path.join(ROOT, ".env");
-    const envText = [`PANEL_URL=${PANEL_URL}`, `PANEL_SERVER_ID=${SERVER_ID}`, `PANEL_API_KEY=${key}`, `DASHBOARD_PASSWORD=${password}`].join("\\n") + "\\n";
+    const envText = [`PANEL_URL=${PANEL_URL}`, `PANEL_SERVER_ID=${SERVER_ID}`, `PANEL_API_KEY=${key}`, `DASHBOARD_PASSWORD=${password}`].join("\n") + "\n";
     try {
       fs.writeFileSync(envPath, envText, { encoding: "utf8", mode: 0o600, flag: "wx" });
       try { fs.chmodSync(envPath, 0o600); } catch {}

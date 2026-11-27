@@ -96,7 +96,7 @@ async function handleApi(req, res, url) {
     const password = typeof body.dashboardPassword === "string" ? body.dashboardPassword : "";
     if (key.length < 12 || key.length > 512 || /[\\r\\n]/.test(key) || password.length < 12 || password.length > 200 || /[\\r\\n]/.test(password)) return send(res, 400, { error: "المفتاح غير صالح أو كلمة المرور أقصر من 12 حرفاً." });
     const envPath = path.join(ROOT, ".env");
-    const envText = `PANEL_URL=${PANEL_URL}\\nPANEL_SERVER_ID=${SERVER_ID}\\nPANEL_API_KEY=${key}\\nDASHBOARD_PASSWORD=${password}\\n`;
+    const envText = [`PANEL_URL=${PANEL_URL}`, `PANEL_SERVER_ID=${SERVER_ID}`, `PANEL_API_KEY=${key}`, `DASHBOARD_PASSWORD=${password}`].join("\\n") + "\\n";
     try {
       fs.writeFileSync(envPath, envText, { encoding: "utf8", mode: 0o600, flag: "wx" });
       try { fs.chmodSync(envPath, 0o600); } catch {}

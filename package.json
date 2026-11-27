@@ -6,8 +6,8 @@
   "main": "electron/main.cjs",
   "scripts": {
     "start": "node server.js",
-    "build:windows": "node scripts/write-app-config.js && electron-builder --win nsis",
-    "build:android": "node scripts/write-app-config.js && node scripts/prepare-www.js && cap sync android"
+    "build:windows": "electron-builder --win nsis",
+    "build:android": "node scripts/prepare-www.js && cap sync android"
   },
   "engines": {
     "node": ">=20"

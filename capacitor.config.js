@@ -2,5 +2,6 @@ module.exports = {
   appId: "cc.bloodmc.controlcenter",
   appName: "BloodMC Control Center",
   webDir: "www",
-  android: { allowMixedContent: false }
+  android: { allowMixedContent: false },
+  plugins: { CapacitorHttp: { enabled: true } }
 };

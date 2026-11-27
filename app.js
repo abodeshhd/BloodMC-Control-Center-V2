@@ -29,7 +29,7 @@ function setState(state) {
 }
 
 async function refresh() {
-  const [server, resourceData] = await Promise.all([api("/api/server"), api("/api/resources")]);
+  const [server, resourceData] = await Promise.all([api(""), api("/resources")]);
   const attr = server?.attributes || {};
   const resources = resourceData?.attributes?.resources || {};
   setState(resourceData?.attributes?.current_state || "unknown");
@@ -75,7 +75,7 @@ document.querySelectorAll("[data-power]").forEach((button) => {
     button.disabled = true;
     $("actionMessage").textContent = "جارٍ إرسال الطلب...";
     try {
-      await api("/api/power", { method: "POST", body: JSON.stringify({ signal }) });
+      await api("/power", { method: "POST", body: JSON.stringify({ signal }) });
       $("actionMessage").textContent = "تم إرسال الطلب بنجاح.";
       setTimeout(() => refresh().catch(() => {}), 2500);
     } catch (error) { $("actionMessage").textContent = error.message; }
@@ -88,7 +88,7 @@ $("commandForm").addEventListener("submit", async (event) => {
   const command = $("command").value.trim();
   if (!command) return;
   try {
-    await api("/api/command", { method: "POST", body: JSON.stringify({ command }) });
+    await api("/command", { method: "POST", body: JSON.stringify({ command }) });
     $("actionMessage").textContent = "تم إرسال الأمر.";
     $("command").value = "";
   } catch (error) { $("actionMessage").textContent = error.message; }

@@ -1,43 +1,34 @@
 # BloodMC Control Center V2
 
-Responsive Arabic RTL dashboard for the BloodMC Minecraft server on PrimeHost.
+Responsive Arabic RTL dashboard and Android/Windows wrappers for BloodMC. Designed & developed by DEV_ABOUDI.
 
-## Implemented
-- Authenticated backend proxy to the hosting panel's Client API.
-- Live server state, CPU, RAM, and disk readings.
-- Start, stop, and restart controls.
-- Send one console command at a time.
-- API key is stored only in the Node.js server environment, never in browser JavaScript.
+## Backend setup
+Deploy this Node.js project on a separate Node.js hosting service with persistent private storage and HTTPS. Set these private environment variables before starting:
 
-## Requirements
-- Node.js 20 or newer.
-- A Pterodactyl-compatible Client API enabled by the host.
-- A Client API key with the least permissions required: server details, resource stats, power actions, and console command.
-- A separate strong dashboard password.
+- `PANEL_URL=https://panel.primehost.cc`
+- `PANEL_SERVER_ID=cb21b17b`
+- `SETUP_SECRET`: a long, unique one-time setup phrase (at least 24 random characters).
+- `PORT`: supplied by the host.
 
-## Configure on your Node.js hosting service
-Set these as private environment variables in the hosting provider's application settings. Do not put secrets in GitHub.
+Open the HTTPS app URL. In **الإعداد الأول**, enter SETUP_SECRET, a newly generated PrimeHost Client API key, and a unique dashboard password (12+ characters). The backend writes the key and dashboard password to a private `.env` file with restrictive file permissions. The setup endpoint locks after first successful setup. Keep persistent disk enabled; if the host has ephemeral storage, use its private environment variables instead and do not rely on the in-app file setup.
 
-| Variable | Value |
-|---|---|
-| `PORT` | Provided by your app host (usually automatic) |
-| `PANEL_URL` | `https://panel.primehost.cc` |
-| `PANEL_SERVER_ID` | `cb21b17b` |
-| `PANEL_API_KEY` | A newly generated Client API key |
-| `DASHBOARD_PASSWORD` | A long, unique password for this dashboard |
+Never paste API keys into GitHub, source files, APK/EXE, or chat. Revoke any previously exposed key. Use a least-privilege Client API key and HTTPS only.
 
-Then deploy the repository and run:
+## Build Android APK and Windows installer
+1. Deploy the backend first and confirm its HTTPS URL works.
+2. In GitHub, open **Settings → Secrets and variables → Actions → Variables**.
+3. Add repository variable `BLOODMC_APP_URL` with the public HTTPS dashboard URL (not the API key).
+4. Open **Actions → Build BloodMC apps → Run workflow**.
+5. Download artifacts `BloodMC-Android-APK` and `BloodMC-Windows-EXE` after both jobs succeed.
 
-```bash
-npm start
-```
+Android produces a debug APK for testing. Windows produces an NSIS installer. These builds are wrappers around the deployed HTTPS dashboard, so the backend must remain online.
 
-Open the app's HTTPS URL, enter the dashboard password, and test refresh first. Only test power controls when you intend to control the server.
+## Included now
+- Authenticated backend proxy for server state/resources, power actions, and one-command console submission.
+- In-app first-time setup form for the PrimeHost key.
+- Responsive web dashboard and build workflows for Android and Windows.
 
-## Important
-- A previously shared API key must be revoked and replaced. Never paste API keys into chat, commit them, or put them in browser code.
-- Use HTTPS and keep the dashboard private.
-- If the API returns 401/403, verify the key type and its permissions with PrimeHost support.
-- If the API returns 404, PrimeHost may use a customized API route; ask support for its Client API base path.
-- The current build sends console commands but does not yet stream live console output. Live WebSocket console is a later stage.
-- Player count/list is not included yet; it requires a supported query endpoint or a server-side Minecraft status integration.
+## Not implemented yet
+- Live WebSocket console output.
+- Player list / player management.
+- Signed Android release APK and code-signed Windows installer.

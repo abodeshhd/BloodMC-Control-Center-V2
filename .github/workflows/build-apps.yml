@@ -2,6 +2,7 @@ name: Build BloodMC apps
 on:
   workflow_dispatch:
   push:
+    branches: ["main"]
     tags: ["v*"]
 permissions:
   contents: read
@@ -17,17 +18,9 @@ jobs:
         with: { distribution: temurin, java-version: "21" }
       - name: Install dependencies
         run: npm install
-      - name: Validate app API URL
-        env:
-          BLOODMC_APP_URL: ${{ vars.BLOODMC_APP_URL }}
-        run: |
-          if [ -z "$BLOODMC_APP_URL" ] || [[ "$BLOODMC_APP_URL" != https://* ]]; then
-            echo "Set repository variable BLOODMC_APP_URL to your deployed HTTPS API URL."
-            exit 1
-          fi
       - name: Generate Android project and bundle app UI
         env:
-          BLOODMC_APP_URL: ${{ vars.BLOODMC_APP_URL }}
+          BLOODMC_APP_URL: https://bloodmc-control-center-v2.onrender.com
         run: |
           node scripts/write-app-config.js
           node scripts/prepare-www.js
@@ -56,9 +49,6 @@ jobs:
         env:
           BLOODMC_APP_URL: ${{ vars.BLOODMC_APP_URL }}
         run: |
-          if (-not $env:BLOODMC_APP_URL.StartsWith("https://")) {
-            throw "Set repository variable BLOODMC_APP_URL to your deployed HTTPS API URL."
-          }
           npm run build:windows
       - uses: actions/upload-artifact@v4
         with:

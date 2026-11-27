@@ -121,3 +121,20 @@ if (setupForm) setupForm.addEventListener("submit", async (event) => {
     $("setupMessage").textContent = error.message;
   } finally { button.disabled = false; }
 });
+
+async function checkInitialSetup() {
+  try {
+    const response = await fetch(new URL("/api/status", API_BASE || window.location.href));
+    const status = await response.json();
+    if (status.configured) {
+      $("setupPanel").hidden = true;
+      $("loginPanel").hidden = false;
+    } else {
+      $("setupPanel").hidden = false;
+      $("loginPanel").hidden = true;
+    }
+  } catch {
+    $("setupMessage").textContent = "تعذر فحص إعداد الخادم. تحقق من اتصال الإنترنت ورابط الخدمة.";
+  }
+}
+checkInitialSetup();

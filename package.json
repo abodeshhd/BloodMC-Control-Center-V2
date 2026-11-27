@@ -1,8 +1,21 @@
 {
   "name": "bloodmc-control-center-v2",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "private": true,
-  "description": "Secure BloodMC dashboard for a Pterodactyl-compatible hosting panel",
-  "scripts": { "start": "node server.js" },
-  "engines": { "node": ">=20" }
+  "description": "BloodMC Control Center by DEV_ABOUDI",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "start": "node server.js",
+    "build:windows": "electron-builder --win nsis",
+    "build:android": "cap sync android"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^7.4.3",
+    "@capacitor/cli": "^7.4.3",
+    "electron": "^36.4.0",
+    "electron-builder": "^26.0.12"
+  }
 }

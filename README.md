@@ -14,10 +14,8 @@ On Render or another host with ephemeral storage, set secrets as environment var
 
 ## Build Android APK and Windows installer
 1. Confirm the backend is deployed and its HTTPS URL is healthy.
-2. In GitHub, open **Settings → Secrets and variables → Actions → Variables**.
-3. Add repository variable `BLOODMC_APP_URL` with the backend HTTPS URL. This URL is public and must not contain credentials.
-4. Open **Actions → Build BloodMC apps → Run workflow**.
-5. Download `BloodMC-Android-APK` and `BloodMC-Windows-EXE` after the jobs succeed.
+2. The build workflow already uses the public Render backend URL and starts automatically after updates to the main branch; it can also be started from **Actions → Build BloodMC apps → Run workflow**.
+3. Download `BloodMC-Android-APK` and `BloodMC-Windows-EXE` after the jobs succeed.
 
 The Android and Windows packages contain the UI locally; they connect to the backend over HTTPS for server management. The current Android output is a debug APK for testing. The Windows output is an NSIS installer. These are installable clients, not offline server controllers; the backend and internet connection are required for live server management.
 

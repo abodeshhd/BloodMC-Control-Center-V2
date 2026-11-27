@@ -8,7 +8,7 @@ Installable Android and Windows clients for BloodMC. The app interface is bundle
 - API: PrimeHost / Pterodactyl Client API (`/api/client/servers/{server}/...`).
 - Enter a PrimeHost Client API key in the app at login. The key is kept in memory only and cleared when logging out or closing the app.
 - Never commit or share API keys. Use a dedicated least-privilege Client API key and revoke it if exposed.
-- Direct API access requires the panel to allow requests from the app origin. If the panel blocks CORS, the hosting provider must enable the app origin or provide a supported native API route; do not put a private API key in a public proxy.
+- Android uses Capacitor's native HTTPS transport and Windows uses Electron's native HTTPS bridge, so the app does not depend on browser CORS. The API key is sent directly to PrimeHost and is not routed through Render.
 
 ## Build Android APK and Windows installer
 1. Open **Actions → Build BloodMC apps → Run workflow** in GitHub, or let the workflow start after a push to `main`.

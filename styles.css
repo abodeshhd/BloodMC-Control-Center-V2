@@ -47,7 +47,7 @@ header>div:first-child>small{color:#a5a3b5;font-size:10px;letter-spacing:2px}
 .panel small,.panel p{color:var(--muted)}
 .panel p{font-size:13px;line-height:1.7}
 .login{max-width:570px}
-.login form,.command-form{display:flex;gap:10px;margin:16px 0}
+.login form,.command-form,#setupForm{display:flex;gap:10px;margin:16px 0;flex-direction:column}
 input{min-width:0;flex:1;background:#0a0c15;color:#fff;border:1px solid #343145;border-radius:10px;padding:13px 14px;font:inherit;outline:none;transition:.2s}
 input:focus{border-color:#dc3b63;box-shadow:0 0 0 3px rgba(220,59,99,.12)}
 button{background:#202333;color:#fff;border:1px solid #3a3b50;border-radius:10px;padding:11px 17px;font:inherit;font-size:13px;cursor:pointer;transition:transform .18s,filter .18s,border-color .18s}
@@ -71,5 +71,5 @@ footer{padding:25px 5px;color:#747588;font-size:10px;display:flex;align-items:ce
 .copyright b{color:#ff6686}
 [hidden]{display:none!important}
 @media(max-width:900px){.app{grid-template-columns:1fr}.sidebar{position:relative;height:auto;padding:15px 18px;gap:15px;border-left:0;border-bottom:1px solid #292432}.sidebar nav{display:flex;overflow:auto;gap:5px}.sidebar nav a{white-space:nowrap;padding:11px 12px}.side-foot{display:none}main{padding:22px}.stats{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:520px){main{padding:15px 12px}.welcome{padding:22px 18px;min-height:150px}.welcome h2{font-size:19px}.welcome small{font-size:11px}.hero-mark{width:85px;height:90px;margin-left:0}.cube{width:55px;height:55px;font-size:31px;border-radius:17px}.hero-ring{width:78px;height:78px}.orbit-one{top:5px;right:8px}.orbit-two{bottom:6px;left:8px}.panel{padding:16px}.login form,.command-form{flex-direction:column}.login button,.command-form button{width:100%}header h1{font-size:22px}.profile{padding:9px 11px;font-size:11px}.stats{gap:9px}.stats .panel{padding:14px}.stats strong{font-size:22px}footer{justify-content:center;text-align:center;flex-direction:column;gap:7px}}
+@media(max-width:520px){main{padding:15px 12px}.welcome{padding:22px 18px;min-height:150px}.welcome h2{font-size:19px}.welcome small{font-size:11px}.hero-mark{width:85px;height:90px;margin-left:0}.cube{width:55px;height:55px;font-size:31px;border-radius:17px}.hero-ring{width:78px;height:78px}.orbit-one{top:5px;right:8px}.orbit-two{bottom:6px;left:8px}.panel{padding:16px}.login form,.command-form,#setupForm{flex-direction:column}.login button,.command-form button,#setupForm button{width:100%}header h1{font-size:22px}.profile{padding:9px 11px;font-size:11px}.stats{gap:9px}.stats .panel{padding:14px}.stats strong{font-size:22px}footer{justify-content:center;text-align:center;flex-direction:column;gap:7px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}

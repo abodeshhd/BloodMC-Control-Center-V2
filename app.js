@@ -1,9 +1,10 @@
 const $ = (id) => document.getElementById(id);
 let dashboardPassword = "";
 let refreshTimer = null;
+const API_BASE = String(window.BLOODMC_API_BASE_URL || "").replace(/\/$/, "");
 
 async function api(path, options = {}) {
-  const response = await fetch(path, {
+  const response = await fetch(new URL(path, API_BASE || window.location.href), {
     ...options,
     headers: { "Content-Type": "application/json", "x-dashboard-password": dashboardPassword, ...(options.headers || {}) }
   });

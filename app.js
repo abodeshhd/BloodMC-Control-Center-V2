@@ -3,7 +3,25 @@ let apiKey = "";
 let refreshTimer = null;
 const PANEL_BASE = "https://panel.primehost.cc/api/client/servers/cb21b17b";
 
+function parseBody(text) {
+  if (!text) return null;
+  try { return JSON.parse(text); } catch { return { message: text.slice(0, 500) }; }
+}
+
+function explainApiError(status, data) {
+  const detail = data?.errors?.[0]?.detail || data?.message || data?.error;
+  if (status === 401) return "رفض PrimeHost المفتاح (401). أنشئ Client API Key جديداً وتأكد أنه غير ملغى.";
+  if (status === 403) return "المفتاح صحيح لكن لا يملك صلاحية الوصول لهذا السيرفر (403).";
+  if (status === 404) return "لم يتم العثور على السيرفر أو مسار API (404). تحقق من Server Identifier في PrimeHost.";
+  if (status === 409) return "PrimeHost رفض العملية بسبب حالة السيرفر الحالية (409).";
+  if (status === 422) return `بيانات الطلب غير مقبولة (422).${detail ? " " + detail : ""}`;
+  if (status === 429) return "طلبات كثيرة. انتظر قليلاً ثم حاول مجدداً (429).";
+  if (status >= 500) return `خلل مؤقت من خادم PrimeHost (HTTP ${status}).`;
+  return `فشل طلب PrimeHost (HTTP ${status}).${detail ? " " + detail : ""}`;
+}
+
 async function api(path, options = {}) {
+  if (!apiKey) throw new Error("أدخل مفتاح Client API أولاً.");
   const url = `${PANEL_BASE}${path}`;
   const headers = {
     Accept: "Application/vnd.pterodactyl.v1+json",
@@ -12,28 +30,35 @@ async function api(path, options = {}) {
     ...(options.headers || {})
   };
   let status, data;
-  if (window.bloodmcDesktop?.request) {
-    const result = await window.bloodmcDesktop.request({
-      url, method: options.method || "GET", headers, body: options.body || null
-    });
-    status = result.status;
-    data = result.data;
-  } else {
-    const response = await fetch(url, { ...options, headers });
-    status = response.status;
-    data = status === 204 ? null : await response.json().catch(() => ({}));
+  try {
+    if (window.bloodmcDesktop?.request) {
+      const result = await window.bloodmcDesktop.request({
+        url, method: options.method || "GET", headers, body: options.body || null
+      });
+      status = result.status;
+      data = result.data;
+    } else {
+      // CapacitorHttp is enabled in capacitor.config.js and transparently
+      // routes fetch through native HTTPS on Android (avoids browser CORS).
+      const response = await fetch(url, { ...options, headers });
+      status = response.status;
+      data = parseBody(response.status === 204 ? "" : await response.text());
+    }
+  } catch (error) {
+    const message = String(error?.message || error);
+    if (/timeout|timed out|aborted/i.test(message)) throw new Error("انتهت مهلة الاتصال بـ PrimeHost. تحقق من الإنترنت وحاول مجدداً.");
+    if (/failed to fetch|network|internet|connection|ssl|certificate/i.test(message)) {
+      throw new Error("تعذر الوصول إلى PrimeHost عبر HTTPS. تحقق من الإنترنت أو جرّب شبكة أخرى. (" + message + ")");
+    }
+    throw new Error("تعذر تنفيذ طلب API: " + message);
   }
-  if (status < 200 || status >= 300) {
-    throw new Error(status === 401 || status === 403
-      ? "مفتاح API غير صحيح أو لا يملك صلاحية Client API."
-      : `خطأ من PrimeHost: HTTP ${status}`);
-  }
+  if (status < 200 || status >= 300) throw new Error(explainApiError(status, data));
   return data;
 }
 
 function bytes(value) {
   if (!Number.isFinite(value)) return "—";
-  const units = ["B", "MB", "GB", "TB"];
+  const units = ["B", "KB", "MB", "GB", "TB"];
   let n = value, i = 0;
   while (n >= 1024 && i < units.length - 1) { n /= 1024; i++; }
   return `${n.toFixed(1)} ${units[i]}`;
@@ -56,7 +81,7 @@ async function refresh() {
   $("memory").textContent = bytes(resources.memory_bytes);
   $("memoryLimit").textContent = `من ${bytes(resources.memory_limit_bytes)}`;
   $("disk").textContent = bytes(resources.disk_bytes);
-  $("diskLimit").textContent = `من ${bytes((attr.limits?.disk || 0) * 1024 * 1024)}`;
+  $("diskLimit").textContent = `من ${(attr.limits?.disk || 0).toLocaleString("en-US")} MB`;
 }
 
 function logout() {
@@ -115,5 +140,4 @@ $("commandForm").addEventListener("submit", async (event) => {
 
 $("refresh").addEventListener("click", () => refresh().then(() => $("actionMessage").textContent = "تم تحديث البيانات.").catch(e => $("actionMessage").textContent = e.message));
 $("logout").addEventListener("click", logout);
-
 $("loginPanel").hidden = false;

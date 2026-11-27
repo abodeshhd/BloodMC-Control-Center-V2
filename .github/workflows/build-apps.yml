@@ -18,6 +18,10 @@ jobs:
         with: { distribution: temurin, java-version: "21" }
       - name: Install dependencies
         run: npm install
+      - name: Check JavaScript syntax
+        run: |
+          node --check app.js
+          node --check scripts/prepare-www.js
       - name: Generate Android project and bundle app UI
         run: |
           node scripts/prepare-www.js
@@ -42,9 +46,13 @@ jobs:
         with: { node-version: 22 }
       - name: Install dependencies
         run: npm install
-      - name: Build installer
+      - name: Check JavaScript syntax
         run: |
-          npm run build:windows
+          node --check app.js
+          node --check electron/main.cjs
+          node --check electron/preload.cjs
+      - name: Build installer
+        run: npm run build:windows
       - uses: actions/upload-artifact@v4
         with:
           name: BloodMC-Windows-EXE

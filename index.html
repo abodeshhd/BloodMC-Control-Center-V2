@@ -18,13 +18,13 @@
   </aside>
   <main>
     <header><div><small>SERVER MANAGEMENT <b class="owner-tag">BY DEV_ABOUDI</b></small><h1>لوحة التحكم</h1></div><div class="profile"><span class="dot" id="statusDot"></span><span id="statusText">غير متصل</span></div></header>
-    <section class="welcome" id="overview"><div><p>مرحباً بك في مركز التحكم</p><h2>إدارة سيرفر BloodMC</h2><small>اتصال مباشر بلوحة PrimeHost عبر API آمن.</small></div><div class="hero-mark" aria-hidden="true"><div class="hero-ring"></div><div class="cube">B</div><span class="orbit orbit-one"></span><span class="orbit orbit-two"></span></div></section>
+    <section class="welcome" id="overview"><div><p>مرحباً بك في مركز التحكم</p><h2>إدارة سيرفر BloodMC</h2><small>اتصال مباشر بلوحة PrimeHost عبر Client API.</small></div><div class="hero-mark" aria-hidden="true"><div class="hero-ring"></div><div class="cube">B</div><span class="orbit orbit-one"></span><span class="orbit orbit-two"></span></div></section>
 
     <section class="panel login" id="loginPanel">
       <h3>تسجيل الدخول</h3>
-      <p>أدخل كلمة مرور التطبيق للاتصال بسيرفر BloodMC.</p>
-      <form id="loginForm"><input id="password" type="password" placeholder="كلمة مرور لوحة التحكم" autocomplete="current-password" required><button class="primary">اتصال</button></form>
-      <small id="loginMessage">مفتاح PrimeHost محفوظ في الخادم ولا يظهر داخل التطبيق.</small>
+      <p>أدخل مفتاح PrimeHost Client API للاتصال بسيرفر BloodMC.</p>
+      <form id="loginForm"><input id="apiKey" type="password" placeholder="PrimeHost API Key" autocomplete="off" required><button class="primary">اتصال</button></form>
+      <small id="loginMessage">المفتاح يبقى في ذاكرة التطبيق فقط حتى تسجيل الخروج. لا تشاركه مع أحد.</small>
     </section>
 
     <div id="dashboard" hidden>
@@ -46,12 +46,11 @@
         <form id="commandForm" class="command-form"><input id="command" maxlength="160" placeholder="مثال: list" autocomplete="off"><button class="primary">إرسال</button></form>
         <p class="hint">عرض سجل الكونسول المباشر سيضاف بمرحلة WebSocket لاحقة.</p>
       </section>
-      <section class="panel" id="settings"><div class="panel-head"><div><h3>إعدادات الاتصال</h3><small>PrimeHost · cb21b17b</small></div><button id="logout">تسجيل الخروج</button></div><p class="hint">مفتاح API لا يُخزّن في ملفات التطبيق.</p></section>
+      <section class="panel" id="settings"><div class="panel-head"><div><h3>إعدادات الاتصال</h3><small>PrimeHost · cb21b17b · Direct API</small></div><button id="logout">تسجيل الخروج</button></div><p class="hint">يُمسح مفتاح API عند تسجيل الخروج. لا تستخدم مفتاحاً بصلاحيات أوسع من اللازم.</p></section>
     </div>
     <footer><span>© 2026 BloodMC Control Center</span><strong class="copyright">DESIGNED & DEVELOPED BY <b>DEV_ABOUDI</b></strong><span>All Rights Reserved</span></footer>
   </main>
 </div>
-<script src="app-config.js"></script>
 <script src="app.js" defer></script>
 </body>
 </html>

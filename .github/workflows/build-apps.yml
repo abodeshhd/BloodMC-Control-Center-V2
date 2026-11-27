@@ -47,7 +47,7 @@ jobs:
         run: npm install
       - name: Build installer
         env:
-          BLOODMC_APP_URL: ${{ vars.BLOODMC_APP_URL }}
+          BLOODMC_APP_URL: https://bloodmc-control-center-v2.onrender.com
         run: |
           npm run build:windows
       - uses: actions/upload-artifact@v4

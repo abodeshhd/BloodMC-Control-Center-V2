@@ -1,15 +1,20 @@
 const $ = (id) => document.getElementById(id);
-let dashboardPassword = "";
+let apiKey = "";
 let refreshTimer = null;
-const API_BASE = String(window.BLOODMC_API_BASE_URL || "").replace(/\/$/, "");
+const PANEL_BASE = "https://panel.primehost.cc/api/client/servers/cb21b17b";
 
 async function api(path, options = {}) {
-  const response = await fetch(new URL(path, API_BASE || window.location.href), {
+  const response = await fetch(`${PANEL_BASE}${path}`, {
     ...options,
-    headers: { "Content-Type": "application/json", "x-dashboard-password": dashboardPassword, ...(options.headers || {}) }
+    headers: {
+      Accept: "Application/vnd.pterodactyl.v1+json",
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+      ...(options.headers || {})
+    }
   });
   const data = response.status === 204 ? null : await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data?.error || `HTTP ${response.status}`);
+  if (!response.ok) throw new Error(response.status === 401 || response.status === 403 ? "مفتاح API غير صحيح أو لا يملك صلاحية Client API." : `خطأ من PrimeHost: HTTP ${response.status}`);
   return data;
 }
 
@@ -42,18 +47,19 @@ async function refresh() {
 }
 
 function logout() {
-  dashboardPassword = "";
+  apiKey = "";
   clearInterval(refreshTimer);
-  $("password").value = "";
+  $("apiKey").value = "";
   $("dashboard").hidden = true;
   $("loginPanel").hidden = false;
-  $("loginMessage").textContent = "تم تسجيل الخروج.";
+  $("loginMessage").textContent = "تم تسجيل الخروج. تم مسح المفتاح من الذاكرة.";
 }
 
 $("loginForm").addEventListener("submit", async (event) => {
   event.preventDefault();
-  dashboardPassword = $("password").value;
-  $("loginMessage").textContent = "جارٍ التحقق من الاتصال...";
+  apiKey = $("apiKey").value.trim();
+  if (!apiKey) return;
+  $("loginMessage").textContent = "جارٍ الاتصال المباشر بـ PrimeHost...";
   try {
     await refresh();
     $("loginPanel").hidden = true;
@@ -62,7 +68,7 @@ $("loginForm").addEventListener("submit", async (event) => {
     clearInterval(refreshTimer);
     refreshTimer = setInterval(() => refresh().catch((e) => $("actionMessage").textContent = e.message), 15000);
   } catch (error) {
-    dashboardPassword = "";
+    apiKey = "";
     $("loginMessage").textContent = error.message;
   }
 });
@@ -97,15 +103,4 @@ $("commandForm").addEventListener("submit", async (event) => {
 $("refresh").addEventListener("click", () => refresh().then(() => $("actionMessage").textContent = "تم تحديث البيانات.").catch(e => $("actionMessage").textContent = e.message));
 $("logout").addEventListener("click", logout);
 
-async function checkInitialSetup() {
-  try {
-    const response = await fetch(new URL("/api/status", API_BASE || window.location.href));
-    const status = await response.json();
-    $("loginPanel").hidden = !status.configured;
-    if (!status.configured) $("loginMessage").textContent = "الخادم غير مجهز بعد. أكمل إعداد المتغيرات السرية في Render مرة واحدة.";
-  } catch {
-    $("loginPanel").hidden = false;
-    $("loginMessage").textContent = "تعذر الاتصال بالخادم. تحقق من رابط الخدمة.";
-  }
-}
-checkInitialSetup();
+$("loginPanel").hidden = false;
